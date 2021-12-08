@@ -1,68 +1,65 @@
 import sys
 
-lines = []
-
-for line in sys.stdin:
-  lines.append(line.rstrip())
-
-numbers_to_call = [num for num in lines[0].split(',')]
+numbers_to_call = None
+board = []
 boards = []
 
-for i in range(2, len(lines), 6):
-  board = {
-    'numbers': {},
-    'rows': [],
-    'winning_number': None
-  }
+for line in sys.stdin:
+  line = line.rstrip()
 
-  for row_number in range(0, 5):
-    line = lines[i + row_number]
-    row = [line[pos:pos+2].strip() for pos in range(0, len(line), 3)]
+  if numbers_to_call == None:
+    numbers_to_call = [int(_) for _ in line.split(',')]
+  else:
+    if line:
+      row = [[int(line[pos:pos+2].strip()), False] for pos in range(0, len(line), 3)]
+      board.append(row)
+    elif len(board):
+      boards.append(board)
+      board = []
 
-    for col_number, num in enumerate(row):
-      board['numbers'][num] = {
-        'row': row_number,
-        'col': col_number,
-        'marked': False
-      }
+boards.append(board)
+board = None
 
-    board['rows'].append(row)
+def bingo(board):
+  for i in range(5):
+    row = board[i]
+    if False not in [_[1] for _ in row]:
+      return True
 
-  boards.append(board)
+  for i in range(5):
+    col = [row[i] for row in board]
+    if False not in [_[1] for _ in col]:
+      return True
 
-def bingo_in_row(board, row_number):
-  row = board['rows'][row_number]
-  unmarked_numbers = list(filter(lambda _: not _['marked'], map(lambda _: board['numbers'][_], row)))
+  return False
 
-  return len(unmarked_numbers) == 0
+def mark_square(called_number, board):
+  for row in range(5):
+    for col in range(5):
+      square = board[row][col]
 
-def bingo_in_col(board, col_number):
-  col = [board['rows'][row_number][col_number] for row_number in range(0, 5)]
-  unmarked_numbers = list(filter(lambda _: not _['marked'], map(lambda _: board['numbers'][_], col)))
-
-  return len(unmarked_numbers) == 0
+      if square[0] == called_number:
+        square[1] = True
+        return
 
 def first_board_to_win(boards, numbers_to_call):
   for called_number in numbers_to_call:
     for board in boards:
-      if called_number in board['numbers'].keys():
-        number_on_board = board['numbers'][called_number]
-        number_on_board['marked'] = True
+      mark_square(called_number, board)
 
-        row = number_on_board['row']
-        col = number_on_board['col']
+      if bingo(board):
+        return (called_number, board)
 
-        if bingo_in_row(board, row) or bingo_in_col(board, col):
-          board['winning_number'] = called_number
-          return board
+def score(winning_number, winning_board):
+  squares_on_board = [square for row in winning_board for square in row]
+  sum_of_unmarked_squares = 0
 
-def score(winner):
-  sum_of_unmarked_numbers = 0
+  for row in winning_board:
+    for square in row:
+      if not square[1]:
+        sum_of_unmarked_squares += square[0]
 
-  for (key, value) in winner['numbers'].items():
-    if not value['marked']:
-      sum_of_unmarked_numbers += int(key)
+  return winning_number * sum_of_unmarked_squares
 
-  return sum_of_unmarked_numbers * int(winner['winning_number'])
-
-print(score(first_board_to_win(boards, numbers_to_call)))
+winning_number, winning_board = first_board_to_win(boards, numbers_to_call)
+print(score(winning_number, winning_board))
