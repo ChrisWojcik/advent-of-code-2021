@@ -5,8 +5,8 @@ entries = []
 
 for line in sys.stdin:
   patterns,output = line.strip().split(' | ')
-  patterns = patterns.split(' ')
-  output = output.split(' ')
+  patterns = [''.join(sorted(_)) for _ in patterns.split(' ')]
+  output = [''.join(sorted(_)) for _ in output.split(' ')]
 
   entries.append((patterns, output))
 
@@ -16,7 +16,6 @@ DIGITS = ['abcefg', 'cf', 'acdeg', 'acdfg', 'bcdf', 'abdfg', 'abdefg', 'acf', 'a
 sum_of_displays = 0
 
 for patterns,output in entries:
-  sorted_patterns = [''.join(sorted(pattern)) for pattern in patterns]
   display = 0
 
   for perm in itertools.permutations(SEGMENTS):
@@ -26,7 +25,7 @@ for patterns,output in entries:
     for i in range(10):
       decoded_digit = ''.join(sorted([segment_mapping[_] for _ in DIGITS[i]]))
 
-      if decoded_digit in sorted_patterns:
+      if decoded_digit in patterns:
         digit_mapping.append(decoded_digit)
 
     if len(digit_mapping) != 10:
@@ -34,7 +33,7 @@ for patterns,output in entries:
 
     for i in range(4):
       for j,digit in enumerate(digit_mapping):
-        if digit == ''.join(sorted(output[i])):
+        if digit == output[i]:
           display += pow(10, 3 - i) * j
           break
 

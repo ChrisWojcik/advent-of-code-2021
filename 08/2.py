@@ -4,8 +4,8 @@ entries = []
 
 for line in sys.stdin:
   patterns,output = line.strip().split(' | ')
-  patterns = patterns.split(' ')
-  output = output.split(' ')
+  patterns = [''.join(sorted(_)) for _ in patterns.split(' ')]
+  output = [''.join(sorted(_)) for _ in output.split(' ')]
 
   entries.append((patterns, output))
 
@@ -36,7 +36,6 @@ for patterns,output in entries:
   patterns_with_segment = { _:[] for _ in SEGMENTS }
 
   for i, pattern in enumerate(patterns):
-    sorted_pattern = ''.join(sorted(pattern))
     length = len(pattern)
 
     for _ in SEGMENTS:
@@ -44,13 +43,13 @@ for patterns,output in entries:
         patterns_with_segment[_].append(i)
 
     if length == len(DIGITS[1]):
-      digit_mapping[1] = sorted_pattern
+      digit_mapping[1] = pattern
     if length == len(DIGITS[4]):
-      digit_mapping[4] = sorted_pattern
+      digit_mapping[4] = pattern
     if length == len(DIGITS[7]):
-      digit_mapping[7] = sorted_pattern
+      digit_mapping[7] = pattern
     if length == len(DIGITS[8]):
-      digit_mapping[8] = sorted_pattern
+      digit_mapping[8] = pattern
 
   segment_mapping['a'] = difference(digit_mapping[7], digit_mapping[1])
   segment_mapping['b'] = find_keys(lambda k,_: len(_[k]) == 6, patterns_with_segment)[0]
@@ -70,7 +69,7 @@ for patterns,output in entries:
   display = 0
 
   for i in range(4):
-    output_digit = ''.join(sorted(output[i]))
+    output_digit = output[i]
 
     for j,digit in enumerate(digit_mapping):
       if output_digit == digit:
