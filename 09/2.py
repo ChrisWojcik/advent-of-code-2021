@@ -71,20 +71,26 @@ for location in heightmap.keys():
 
     basins.append(basin)
 
-WHITE_BOLD = "\033[1;37m"
+COLORS = []
+for i in range(0, 16):
+  for j in range(0, 16):
+    code = str(i * 16 + j)
+    COLORS.append("\u001b[48;5;" + code + "m")
+
 RESET = "\u001B[0m"
 
 visualization = ''
-locations_in_basins = set([location for basin in basins for location in basin])
+locations_in_basins = { location:i for i,basin in enumerate(basins) for location in basin }
 
 for i in range(HEIGHT):
   for j in range(WIDTH):
     location = (i, j)
     height = heightmap[location]
-    in_basin = location in locations_in_basins
+    in_basin = location in locations_in_basins.keys()
 
     if in_basin:
-      visualization += WHITE_BOLD+str(height)+RESET
+      basin = locations_in_basins[location]
+      visualization += COLORS[basin]+str(height)+RESET
     else:
       visualization += str(height)
 
