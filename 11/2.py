@@ -1,4 +1,6 @@
 import sys
+import os
+import time
 
 GRID_SIZE = 0
 grid = {}
@@ -29,12 +31,42 @@ def get_neighbors(cell):
 
   return list(filter(lambda _: _ in grid.keys(), neighbors))
 
+def visualization(grid_state):
+  FLASHING = '\u001b[46m\u001b[37m'
+  ZERO = '\u001b[36m'
+  RESET = '\u001b[0m'
+
+  visualization = ''
+
+  for r in range(GRID_SIZE):
+    for c in range(GRID_SIZE):
+      cell = grid_state[(r,c)]
+
+      if cell > 9:
+        visualization += FLASHING + '9' + RESET
+      elif cell == 0:
+        visualization += ZERO + '0' + RESET
+      else:
+        visualization += str(cell)
+
+    visualization += '\n'
+
+  return visualization
+
+def to_screen(grid_state):
+  os.system('cls' if os.name == 'nt' else 'clear')
+  sys.stdout.write(visualization(grid))
+  sys.stdout.flush()
+  time.sleep(0.005)
+
 step = 1
 synchronized = False
 
 while not synchronized:
   cascade = []
   flashed = set()
+
+  to_screen(grid)
 
   for r in range(GRID_SIZE):
     for c in range(GRID_SIZE):
@@ -43,6 +75,8 @@ while not synchronized:
       if grid[(r,c)] > 9:
         cascade.append((r,c))
         flashed.add((r,c))
+
+  to_screen(grid)
 
   while len(cascade) > 0:
     cell = cascade.pop(0)
@@ -56,12 +90,18 @@ while not synchronized:
           cascade.append(neighbor)
           flashed.add(neighbor)
 
-  for cell in flashed:
-    grid[cell] = 0
+    to_screen(grid)
 
   if len(flashed) == GRID_SIZE * GRID_SIZE:
     synchronized = True
   else:
     step += 1
+
+    for cell in flashed:
+      grid[cell] = 0
+
+    time.sleep(0.1)
+    to_screen(grid)
+    time.sleep(0.1)
 
 print(step)
