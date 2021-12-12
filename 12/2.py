@@ -1,5 +1,5 @@
 import sys
-from collections import deque,Counter
+from collections import deque
 
 cave_map = {}
 
@@ -13,34 +13,39 @@ for line in sys.stdin:
 def is_small_cave(cave):
   return cave.islower()
 
-def can_visit_cave(cave, path):
+def can_visit_cave(cave, small_caves_visited):
   if cave == 'start':
     return False
 
-  small_caves = list(filter(is_small_cave, path))
-  times_visited = Counter(small_caves)
-
-  if 2 in times_visited.values() and cave in small_caves:
-    return False
+  if is_small_cave(cave) and \
+     2 in small_caves_visited.values() and \
+     small_caves_visited[cave] > 0:
+      return False
 
   return True
 
-paths = []
+answer = 0
+
+small_caves_visited = { _:0 for _ in list(filter(is_small_cave, cave_map.keys())) }
+small_caves_visited['start'] = 1
+
 q = deque()
-q.append(['start'])
+q.append(('start', small_caves_visited))
 
 while len(q) > 0:
-  path = q.popleft()
-  tail = path[len(path) - 1]
+  tail, small_caves_visited = q.popleft()
 
   if tail == 'end':
-    paths.append(path)
+    answer += 1
     continue
 
   for cave in cave_map[tail]:
-    if can_visit_cave(cave, path):
-      new_path = path.copy()
-      new_path.append(cave)
-      q.append(new_path)
+    if can_visit_cave(cave, small_caves_visited):
+      new_small_caves_visited = small_caves_visited.copy()
 
-print(len(paths))
+      if is_small_cave(cave):
+        new_small_caves_visited[cave] += 1
+
+      q.append((cave, new_small_caves_visited))
+
+print(answer)
